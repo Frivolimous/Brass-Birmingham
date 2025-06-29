@@ -71,7 +71,7 @@ export class FirebaseManager {
 
   }
 
-  updateObject = Utils.throttle(300, this.updateObjectInstant);
+  updateObject = Utils.throttle(30, this.updateObjectInstant);
 
   addObject<T> (obj: T, collectionName: string = 'Object') {
     this.db.collection(collectionName).add(obj);
