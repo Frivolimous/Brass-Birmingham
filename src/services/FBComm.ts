@@ -59,7 +59,6 @@ export class FirebaseManager {
   dbRegisterObject<T extends FirebaseObject>(obj: T, docName: string = 'objects', onChangeCb: (e: T) => void) {
     this.db.doc(`${docName}/${obj.__id}`).onSnapshot((doc: {data: () => T, id: string, lastUpdater: string}) => {
       let data = doc.data();
-      console.log('return', data.lastUpdater, this.uid);
       if (data.lastUpdater !== this.uid) {
         onChangeCb(data);
       }

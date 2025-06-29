@@ -149,14 +149,12 @@ export class DraggableToken implements DraggableElement {
   }
 
   updateData = (data: DraggableElementData) => {
-    console.log("UPDATED!");
     this.data.x = data.x;
     this.data.y = data.y;
     this.data.reserved = data.reserved;
     this.data.lastUpdater = data.lastUpdater;
 
     this.disabled = data.reserved && data.lastUpdater !== Facade.firebaseManager.uid;
-    console.log(this.disabled);
   }
 
   startDrag = () => {
