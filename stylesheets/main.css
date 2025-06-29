@@ -1,0 +1,44 @@
+/* core stuff - shouldn't need to ever change */
+:root {
+  --color-back: #f8f32b;
+  --color-back-dark: #a8a30b;
+  --color-text: #000000;
+  --color-button: #2b2d42;
+  --color-button-text: #ffffff;
+  --color-ui: #8d99ae;
+  --color-ui-light: #f1f1f1;
+  --color-button-disabled: #aaa;
+  --color-button-disabled-text: #999;
+}
+
+body {
+  margin: 0px;
+  overflow: hidden;
+  color: var(--color-text);
+}
+
+#main {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+}
+
+#game-canvas {
+  background: var(--color-back);
+  /* padding: 10px; */
+  overflow-y: hidden;
+}
+
+#sidebar {
+  background: #333;
+  width: 40vw;
+}
+
+.inner-canvas {
+  width: 100%;
+  height: 100vh;
+}
+
+.main-canvas-element {
+  width: 100%;
+}
