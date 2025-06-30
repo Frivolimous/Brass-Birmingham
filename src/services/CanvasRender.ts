@@ -23,6 +23,8 @@ export class CanvasRender {
         var swipeMinDistance = 100;
         var swipeMaxTime = 200;
 
+        element.addEventListener('touchend', e => console.log("TOUCH END"))
+
         element.addEventListener('pointerdown', e => {
             let r = element.getBoundingClientRect();
             
@@ -31,19 +33,39 @@ export class CanvasRender {
 
             swiping = {x: location.x, y: location.y};
             window.setTimeout(() => {swiping = null}, swipeMaxTime);
+
+            console.log("DOWN", e);
         });
 
-        element.addEventListener('pointerup', e => {
+        element.addEventListener('mouseup', e => {
             let r = element.getBoundingClientRect();
             
             var location = {x: e.offsetX * element.width / r.width, y: e.offsetY * element.height / r.height};
             this.onPointerUp && this.onPointerUp(location);
-
+            
             swiping = null;
+
+            console.log("UP", location)
+        });
+
+        element.addEventListener('touchend', e => {
+            let r = element.getBoundingClientRect();
+
+            var offsetX = e.changedTouches[0].clientX - this.Element.offsetLeft;
+            var offsetY = e.changedTouches[0].clientY - this.Element.offsetTop;
+            
+            var location = {x: offsetX * element.width / r.width, y: offsetY * element.height / r.height};
+            this.onPointerUp && this.onPointerUp(location);
+            
+            swiping = null;
+
+            console.log("UP", location)
         });
 
         element.addEventListener('pointerleave', e => {
             this.onPointerUpAnywhere && this.onPointerUpAnywhere();
+
+            console.log("LEAVE", e);
         });
 
         element.addEventListener('touchmove', e => {

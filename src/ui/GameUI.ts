@@ -5,7 +5,7 @@ import { ContainerElement } from '../JMHE/ContainerElement';
 import { CostButtonElement } from '../JMHE/CostButtonElement';
 import { TextElement } from '../JMHE/TextElement';
 import { GameEvents, IActionLog } from '../services/GameEvents';
-import { MainCanvas } from './elements/MainCanvas';
+import { MainCanvas } from './Canvas/MainCanvas';
 
 export class GameUI {
   private main: ContainerElement;
