@@ -1,6 +1,6 @@
 export class CanvasRender {
     Element;
-    Graphic;
+    public Graphic;
     Width;
     Height;
     

@@ -12,6 +12,7 @@ export class MainCanvas extends PassiveElement {
   private renderer: CanvasRender;
 
   public tokens: DraggableElement[] = [];
+  
   private dragging: DraggableElement;
 
   constructor() {
@@ -27,8 +28,6 @@ export class MainCanvas extends PassiveElement {
 
     this.backgroundElement = document.getElementById('beehive-image') as HTMLImageElement;
 
-    // this.tokens.push(new DraggableToken(15, 680, '#ff0000'));
-    // this.tokens.push(new DraggableToken(15, 1115, '#ff0000', true));
     Facade.firebaseManager.dbFetchObjects('BirminghamTokens').then((tokens: DraggableElementData[]) => {
       if (tokens.length === 0) {
         console.log("EMPTY");
@@ -49,6 +48,56 @@ export class MainCanvas extends PassiveElement {
         console.log("LOADED", tokens);
       }
     });
+
+    Facade.firebaseManager.dbFetchObjects('BirminghamImages').then((tokens: DraggableImageData[]) => {
+      if (tokens.length === 0) {
+        console.log("EMPTY");
+      } else {
+        console.log("FOUND");
+        tokens.forEach(tokenData => {
+          let data = tokenData;
+          let obj = new DraggableImage(tokenData, (data, instant) => {
+            if (instant) {
+              Facade.firebaseManager.updateObjectInstant(data, 'BirminghamImages');
+            } else {
+              Facade.firebaseManager.updateObject(data, 'BirminghamImages');
+            }
+          });
+          this.tokens.push(obj);
+          Facade.firebaseManager.dbRegisterObject(data, 'BirminghamImages', obj.updateData);
+        });
+        console.log("LOADED", tokens);
+      }
+    });
+
+    (window as any).LoadImage = this.loadImage;
+  }
+
+  public loadImage = (url: string, width = 100, height = 100) => {
+    console.log(url);
+
+    var data: DraggableImageData = {
+      __id: '',
+      lastUpdater: '',
+      reserved: false,
+      x: 100,
+      y: 100,
+      width,
+      height,
+      src: url,
+    }
+
+    Facade.firebaseManager.addObject(data, 'BirminghamImages');
+
+    let obj = new DraggableImage(data, (data, instant) => {
+      if (instant) {
+        Facade.firebaseManager.updateObjectInstant(data, 'BirminghamImages');
+      } else {
+        Facade.firebaseManager.updateObject(data, 'BirminghamImages');
+      }
+    });
+    this.tokens.push(obj);
+    Facade.firebaseManager.dbRegisterObject(data, 'BirminghamImages', obj.updateData);
   }
 
   public fillParent() {
@@ -112,6 +161,17 @@ export class DraggableElementData implements FirebaseObject {
   y: number;
   hex: boolean;
   color: string;
+}
+
+export class DraggableImageData implements FirebaseObject {
+  __id: string;
+  lastUpdater: string;
+  reserved: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  src: string;
 }
 
 export class DraggableToken implements DraggableElement {
@@ -187,5 +247,84 @@ export class DraggableToken implements DraggableElement {
     var dY = p.y - this.y;
 
     return Math.sqrt(dX * dX + dY * dY) <= this.radius;
+  }
+}
+
+export class DraggableImage implements DraggableElement {
+  private _Disabled = false;
+  private image: HTMLImageElement;
+
+  constructor (private data: DraggableImageData, private onUpdate: (data: DraggableImageData, instant: boolean) => void ) {
+    this.image = new Image(data.width, data.height);
+    this.image.src = data.src;
+  }
+
+  set x(n: number) {
+    this.data.x = n;
+    this.onUpdate(this.data, false);
+  }
+
+  get x() : number {
+    return this.data.x;
+  }
+
+  set y(n: number) {
+    this.data.y = n;
+    this.onUpdate(this.data, false);
+  }
+
+  get y(): number {
+    return this.data.y;
+  }
+
+  set disabled(b: boolean) {
+    this._Disabled = b;
+  }
+
+  get disabled(): boolean {
+    return this._Disabled;
+  }
+
+  updateData = (data: DraggableImageData) => {
+    this.data.x = data.x;
+    this.data.y = data.y;
+    this.data.width = data.width;
+    this.data.height = data.height;
+    this.data.src = data.src;
+    this.data.reserved = data.reserved;
+    this.data.lastUpdater = data.lastUpdater;
+
+    this.image = new Image(data.width, data.height);
+    this.image.src = data.src;
+
+    this.disabled = data.reserved && data.lastUpdater !== Facade.firebaseManager.uid;
+  }
+
+  startDrag = () => {
+    if (!this._Disabled) {
+      this.data.reserved = true;
+      this.onUpdate(this.data, true);
+      return true;
+    }
+
+    return false;
+  }
+
+  endDrag = () => {
+    this.data.reserved = false;
+    this.onUpdate(this.data, true);
+  }
+
+  drawTo(renderer: CanvasRender) {
+    if (this.disabled) {
+      renderer.Graphic.globalAlpha = 0.5;
+    }
+
+    renderer.Graphic.drawImage(this.image, this.data.x - this.data.width / 2, this.data.y - this.data.height / 2, this.data.width, this.data.height);
+    renderer.Graphic.globalAlpha = 1;
+  }
+
+  hitTest(p: CanvasPoint) {
+    return (p.x > this.x - this.data.width / 2 && p.x < this.x + this.data.width / 2 && p.y > this.y - this.data.height / 2 && p.y < this.y + this.data.height / 2);
   }
 }
